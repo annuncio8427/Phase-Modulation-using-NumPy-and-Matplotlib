@@ -27,13 +27,72 @@ o	Use Matplotlib to plot the message signal, carrier signal, and phase-modulated
 
 
 ### Program
+```
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import butter, filtfilt
+
+Am = 7
+Ac = 14
+fm = 653
+fc = 6530
+fs = 65300
+
+t = np.arange(0, 0.01, 1/fs)
+
+kp = 0.5  
+m = Am * np.cos(2 * np.pi * fm * t)
+c = Ac * np.cos(2 * np.pi * fc * t)
+pm = Ac * np.cos(2 * np.pi * fc * t + kp * m)
+
+dpm = np.gradient(pm)
+
+env = np.abs(dpm)
+def butter_lowpass_filter(data, cutoff, fs, order=5):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    return filtfilt(b, a, data)
+
+cutoff = 2000  # low pass cutoff (must be > fm)
+demod = butter_lowpass_filter(env, cutoff, fs)
+demod = demod / np.max(demod) * Am
 
 
-### Tabulation
+plt.figure(figsize=(10, 9))
 
+plt.subplot(4, 1, 1)
+plt.plot(t, m)
+plt.title("Message Signal")
+plt.ylabel("Amplitude")
+plt.xlabel("Time (s)")
+
+plt.subplot(4, 1, 2)
+plt.plot(t, c)
+plt.title("Carrier Signal")
+plt.ylabel("Amplitude")
+plt.xlabel("Time (s)")
+
+plt.subplot(4, 1, 3)
+plt.plot(t, pm)
+plt.title("Phase Modulated Signal")
+plt.ylabel("Amplitude")
+plt.xlabel("Time (s)")
+
+plt.subplot(4, 1, 4)
+plt.plot(t, demod)
+plt.title("Demodulated Signal (Recovered Message)")
+plt.ylabel("Amplitude")
+plt.xlabel("Time (s)")
+
+plt.tight_layout()
+plt.show()
+```
 
 ### Output
+![WhatsApp Image 2025-12-03 at 8 47 31 PM](https://github.com/user-attachments/assets/6627cba9-9ba1-4db0-a627-b2c1698a7e71)
 
 
 ### Result
+![WhatsApp Image 2025-12-03 at 8 47 49 PM](https://github.com/user-attachments/assets/f76ea81c-62eb-4418-982e-50067e1513a2)
 
